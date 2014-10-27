@@ -24,8 +24,8 @@
   "dependencies": {
     "config": "~1.6.0",
     "debug": "~2.1.0",
-    "hiredis": "~0.1.15",
-    "redis": "~0.12.1"
+    "hiredis": "~0.1.17",
+    "redis": "~0.8.6"
   },
   "devDependencies": {
     "mocha": "~2.0.1",
