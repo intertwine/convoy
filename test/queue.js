@@ -1,3 +1,4 @@
+/* globals before, describe, it */
 var should = require('should');
 var redis = require('redis');
 var Convoy = require('../lib/convoy');
@@ -45,8 +46,9 @@ describe('Setting up a queue', function(){
     var q = Convoy.createQueue('duckies');
     var received = 0;
     q.startProcessing(function(){
-      if(++received > 1)
+      if(++received > 1){
         throw new Error('We should only have received one job');
+      }
 
       done();
     });
@@ -58,7 +60,7 @@ describe('Setting up a queue', function(){
 
     // Stops processing after the first job is queued
     q.addJob(new Convoy.Job(1));
-    q.addJob(new Convoy.Job("Job IDs can be strings too"));
+    q.addJob(new Convoy.Job('Job IDs can be strings too'));
   });
 
   it('but does not lose the unprocessed job', function(done){
@@ -69,7 +71,7 @@ describe('Setting up a queue', function(){
   });
 });
 
-describe('Enqueing jobs', function(done){
+describe('Enqueing jobs', function(){
   var q, job;
   before(function(done){
     var opts = {
@@ -93,7 +95,7 @@ describe('Enqueing jobs', function(done){
   it('places the job in the queued list', function(done){
     client.lrange(helpers.key(q.name+':queued'), 0, -1, function(err, list){
       should.not.exist(err);
-      list.should.include(''+job.id);
+      list.should.containEql(''+job.id);
       done();
     });
   });
@@ -111,7 +113,7 @@ describe('Enqueing jobs', function(done){
   });
 
   it('only queues processing jobs once', function(done){
-    q.startProcessing(function(job, jobDone){
+    q.startProcessing(function(job){
       q.addJob(job, function(err, status){
         should.not.exist(err);
         status.should.equal('processing');
@@ -127,7 +129,7 @@ describe('Processing jobs', function(){
 
   before(function(done){
     q = Convoy.createQueue('the22ndLetter');
-    var returned = false;
+    // var returned = false;
     var cb = function(j, p){
       job = j;
       processed = p;
@@ -147,7 +149,7 @@ describe('Processing jobs', function(){
     client.lrange(helpers.key(q.name+':queued'), 0, -1, function(err, list){
       should.not.exist(err);
       should.exist(list);
-      list.should.not.include(''+job.id);
+      list.should.not.containEql(''+job.id);
       done();
     });
   });
@@ -181,7 +183,7 @@ describe('Processing jobs', function(){
     client.lrange(key, 0, -1, function(err, log){
       should.not.exist(err);
       should.exist(log);
-      log.should.include(errorMsg);
+      log.should.containEql(errorMsg);
       done();
     });
   });
@@ -265,7 +267,7 @@ describe('When a job gets jammed', function(){
 
 describe('When multiple convoys process the same queue', function(){
   var numConvoys = 10, queues = [], jobIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-  var committedIDs = [];
+  // var committedIDs = [];
 
   function setUpConvoy(queues){
     var c = Convoy.createQueue('q');
@@ -281,13 +283,14 @@ describe('When multiple convoys process the same queue', function(){
     var pending = queues.length * jobIDs.length;
 
     function iterator(){
-      if(!--pending)
+      if(!--pending){
         done();
+      }
     }
 
-    queues.forEach(function(queue, i){
-      for(var i = jobIDs.length; i--;){
-        var job = new Convoy.Job(jobIDs[i]);
+    queues.forEach(function(queue){
+      for(var idx = jobIDs.length; idx--;){
+        var job = new Convoy.Job(jobIDs[idx]);
         queue.addJob(job, iterator);
       }
     });
@@ -344,12 +347,13 @@ describe('Concurrency', function(){
     };
 
     q = Convoy.createQueue('manyWorkers', opts);
-    var pending = numJobs;
-    for (var i = 0; i < numJobs; i++){
-      q.addJob(new Convoy.Job(i), function(err){
+    var pending = numJobs,
+      addDone = function(err){
         should.not.exist(err);
-        if(!--pending) return done();
-      });
+        if(!--pending){ return done(); }
+      };
+    for (var i = 0; i < numJobs; i++){
+      q.addJob(new Convoy.Job(i), addDone);
     }
   });
 
@@ -357,7 +361,7 @@ describe('Concurrency', function(){
     var pending = numJobs;
     q.startProcessing(function(job, jobDone){
       (q.workersRunning <= concurrentWorkers).should.equal(true);
-      if(!--pending) return done();
+      if(!--pending) { return done(); }
       jobDone();
     });
   });
@@ -367,7 +371,7 @@ describe('stats', function(){
   function testCount(done, err, count){
     should.not.exist(err);
     should.exist(count);
-    count.should.be.a('number');
+    count.should.be.type('number');
     done();
   }
   it('can count queued', function(done){
