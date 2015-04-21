@@ -1,6 +1,6 @@
 {
   "name": "redis-convoy",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Redis-backed job queueing",
   "main": "lib/convoy.js",
   "scripts": {
@@ -22,13 +22,13 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "config": "~1.6.0",
-    "debug": "~2.1.0",
-    "hiredis": "~0.1.17",
-    "redis": "~0.8.6"
+    "config": "~1.12.0",
+    "debug": "~2.1.3",
+    "hiredis": "~0.3.0",
+    "redis": "~0.12.1"
   },
   "devDependencies": {
-    "mocha": "~2.0.1",
-    "should": "~4.1.0"
+    "mocha": "~2.2.4",
+    "should": "~6.0.1"
   }
 }
